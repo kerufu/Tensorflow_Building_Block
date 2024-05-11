@@ -11,9 +11,10 @@ class test_model(tf.keras.Model):
         super(test_model, self).__init__()
 
         self.conv1D_module = layers.CustomConv1D(data_shape[1], 10, normalization="instance")
-        self.rnn_module = layers.CustomRNN(data_shape[1], lightweight=True, kernal_clip_value=0.1, enable_regularization=False)
-        self.inception_module = layers.InceptionLayer(10, 5, lightweight=True, scale_down_mode=2, normalization="layer", activation="hsigmoid")
-        self.flatten_module = layers.Conv2DFlatten(10, 5, data_shape[0], 10)
+        self.rnn_module = layers.CustomRNN(data_shape[1], lightweight=True, dropout_ratio=0.3, enable_regularization=False, normalization="layer")
+        self.inception_module = layers.InceptionLayer(16, 5, lightweight=True, scale_down_mode=2, activation="hsigmoid")
+        self.conv2d_module = layers.CustomConv2D(64, 3, normalization="group", activation="htanh", kernal_clip_value=0.1)
+        self.flatten_module = layers.GentalFlatten(10, 5, data_shape[0], 64)
         self.dense_module = layers.CustomDense(1, normalization=False, activation="linear")
 
     def call(self, x, training):
@@ -21,7 +22,8 @@ class test_model(tf.keras.Model):
         x_rnn = tf.expand_dims(self.rnn_module(x, training), axis=3)
         x_concat = tf.concat([x_conv1d, x_rnn], axis=-1)
         x_inception = self.inception_module(x_concat, training)
-        x_flatten = self.flatten_module(x_inception, training)
+        x_conv2d = self.conv2d_module(x_inception, training)
+        x_flatten = self.flatten_module(x_conv2d, training)
         x_dense = self.dense_module(x_flatten, training)
         return x_dense
 

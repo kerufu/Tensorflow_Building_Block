@@ -65,7 +65,7 @@ class CustomLayer(tf.keras.layers.Layer):
         elif self.normalization == "layer":
             self.module.append(tf.keras.layers.LayerNormalization())
         elif self.normalization == "group":
-            self.module.append(tf.keras.layers.GroupNormalization())
+            self.module.append(tf.keras.layers.GroupNormalization()) # number of channel must be multiply of 32
         elif self.normalization == "instance":
             self.module.append(tf.keras.layers.GroupNormalization(groups=-1))
 
@@ -169,9 +169,9 @@ class CustomRNN(CustomLayer):
         self.add_post_layers()
 
 
-class Conv2DFlatten(tf.keras.layers.Layer):
+class GentalFlatten(tf.keras.layers.Layer):
     def __init__(self, output_size, kernal_size, image_size, num_input_channel):
-        super(Conv2DFlatten, self).__init__()
+        super(GentalFlatten, self).__init__()
         num_flatten_layers = int(np.ceil(np.log2(image_size)))
         flatten_step = np.power(
             output_size/num_input_channel, 1/num_flatten_layers)
