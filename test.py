@@ -4,7 +4,7 @@ import numpy as np
 import layers
 
 data_shape = [50, 50]
-num_data = 100
+num_data = 200
 
 class test_model(tf.keras.Model):
     def __init__(self):
@@ -35,9 +35,17 @@ label_negative = [0] * num_data
 dataset = np.concatenate([dataset_positive, dataset_negative], axis=0)
 label = np.concatenate([label_positive, label_negative], axis=0)
 dataset = tf.data.Dataset.from_tensor_slices((dataset, label))
-dataset = dataset.shuffle(dataset.cardinality(), reshuffle_each_iteration=True)
-dataset = dataset.batch(10, drop_remainder=False)
+dataset = dataset.shuffle(dataset.cardinality())
+
+split = int(num_data*2*0.8)
+train_dataset = dataset.take(split)
+train_dataset = train_dataset.shuffle(train_dataset.cardinality(), reshuffle_each_iteration=True)
+train_dataset = train_dataset.batch(10, drop_remainder=False)
+
+validation_dataset = dataset.skip(split)
+validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality(), reshuffle_each_iteration=True)
+validation_dataset = validation_dataset.batch(10, drop_remainder=False)
 
 model = test_model()
 model.compile(optimizer=tf.keras.optimizers.AdamW(), loss=tf.keras.losses.BinaryCrossentropy(from_logits=True), metrics=tf.keras.metrics.BinaryAccuracy(threshold=0))
-model.fit(dataset, epochs=10)
+model.fit(train_dataset, epochs=10, validation_data=validation_dataset)
