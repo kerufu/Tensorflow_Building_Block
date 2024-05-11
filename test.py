@@ -12,7 +12,7 @@ class test_model(tf.keras.Model):
 
         self.conv1D_module = layers.CustomConv1D(data_shape[1], 10, normalization="instance")
         self.rnn_module = layers.CustomRNN(data_shape[1], lightweight=True, dropout_ratio=0.3, enable_regularization=False, normalization="layer")
-        self.inception_module = layers.InceptionLayer(16, 5, lightweight=True, scale_down_mode=2, activation="hsigmoid")
+        self.inception_module = layers.Inception(16, 5, lightweight=True, scale_down_mode=2, activation="hsigmoid")
         self.conv2d_module = layers.CustomConv2D(64, 3, normalization="group", activation="htanh", kernal_clip_value=0.1)
         self.flatten_module = layers.GentalFlatten(10, 5, data_shape[0], 64)
         self.dense_module = layers.CustomDense(1, normalization=False, activation="linear")

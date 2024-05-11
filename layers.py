@@ -191,11 +191,11 @@ class GentalFlatten(tf.keras.layers.Layer):
         return x
 
 
-class InceptionLayer(tf.keras.layers.Layer):
+class Inception(tf.keras.layers.Layer):
     def __init__(self, num_channel, kernal_size,
                  num_field=4, lightweight=False, reflect_padding=True, scale_down_mode=0,
                  kernal_clip_value=0, enable_regularization=True, normalization="batch", activation="hswish", dropout_ratio=0):
-        super(InceptionLayer, self).__init__()
+        super(Inception, self).__init__()
 
         if num_channel % num_field:
             self.conv2d_cluster = [CustomConv2D(num_channel//num_field+num_channel % num_field, kernal_size,
