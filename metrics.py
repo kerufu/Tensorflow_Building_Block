@@ -73,7 +73,7 @@ class ClassificationMetricSet(tf.keras.metrics.Metric):
         recall = self.tp / (self.label_count + self.e)
         f1_score = (2 * precision * recall) / (precision + recall + self.e)
         if self.per_class:
-            return accuracy, precision, recall, f1_score
+            return tf.math.reduce_mean(accuracy), precision, recall, f1_score
         else:
             if self.weighted:
                 class_weights = tf.multiply(self.label_count, self.num_class) / tf.math.reduce_sum(self.label_count)

@@ -2,9 +2,12 @@ import tensorflow as tf
 import numpy as np
 
 import layers
+import losses
 
 data_shape = [50, 50]
 num_data = 200
+batch_size = 10
+epoch = 2
 
 class test_model(tf.keras.Model):
     def __init__(self):
@@ -40,12 +43,39 @@ dataset = dataset.shuffle(dataset.cardinality())
 split = int(num_data*2*0.8)
 train_dataset = dataset.take(split)
 train_dataset = train_dataset.shuffle(train_dataset.cardinality(), reshuffle_each_iteration=True)
-train_dataset = train_dataset.batch(10, drop_remainder=False)
+train_dataset = train_dataset.batch(batch_size, drop_remainder=False)
 
 validation_dataset = dataset.skip(split)
 validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality(), reshuffle_each_iteration=True)
-validation_dataset = validation_dataset.batch(10, drop_remainder=False)
+validation_dataset = validation_dataset.batch(validation_dataset.cardinality(), drop_remainder=False)
 
 model = test_model()
-model.compile(optimizer=tf.keras.optimizers.AdamW(), loss=tf.keras.losses.BinaryCrossentropy(from_logits=True), metrics=tf.keras.metrics.BinaryAccuracy(threshold=0))
-model.fit(train_dataset, epochs=10, validation_data=validation_dataset)
+model.compile(optimizer=tf.keras.optimizers.AdamW(), loss=losses.WassersteinLoss(), metrics=tf.keras.metrics.BinaryAccuracy(threshold=0))
+model.fit(train_dataset, epochs=epoch, validation_data=validation_dataset)
+
+class test_model2(tf.keras.Model):
+    def __init__(self):
+        super(test_model2, self).__init__()
+        self.conv2d_module = layers.CustomConv2D(3, 3, activation="htanh")
+
+    def call(self, x, training):
+        x_conv2d = self.conv2d_module(x, training)
+        return x_conv2d
+
+dataset = np.random.uniform(low=-1, high=1, size=[num_data]+data_shape+[3])
+scaled_dataset = np.random.uniform(low=0.9, high=1.1, size=[num_data, 1, 1, 1]) * dataset + np.random.uniform(low=-0.1, high=0.1, size=[num_data, 1, 1, 1])
+dataset = tf.data.Dataset.from_tensor_slices((dataset, scaled_dataset))
+dataset = dataset.shuffle(dataset.cardinality())
+
+split = int(num_data*0.8)
+train_dataset = dataset.take(split)
+train_dataset = train_dataset.shuffle(train_dataset.cardinality(), reshuffle_each_iteration=True)
+train_dataset = train_dataset.batch(batch_size, drop_remainder=False)
+
+validation_dataset = dataset.skip(split)
+validation_dataset = validation_dataset.shuffle(validation_dataset.cardinality(), reshuffle_each_iteration=True)
+validation_dataset = validation_dataset.batch(validation_dataset.cardinality(), drop_remainder=False)
+
+model = test_model2()
+model.compile(optimizer=tf.keras.optimizers.AdamW(), loss=losses.ScaleShiftInvariantLoss(), metrics=tf.keras.metrics.MeanSquaredError())
+model.fit(train_dataset, epochs=epoch, validation_data=validation_dataset)
